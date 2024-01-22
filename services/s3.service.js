@@ -32,8 +32,8 @@ const {
     return getAWSPath(file.name);
   }
   
-  async function deleteFile(id) {
-    const path = `${QR_PATH}${id}.png`;
+  async function deleteFile(filename) {
+    const path = `${QR_PATH}${filename}`;
     console.log('path', path);
     const command = new DeleteObjectCommand({
       Bucket: AWS_BUCKET,
