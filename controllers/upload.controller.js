@@ -8,11 +8,9 @@ const ffmpeg = require('fluent-ffmpeg');
 const runFfmpegPromisified = promisify(ffmpeg);
 
 const handleUpload = async (req, res) => {
-  // console.log('req.files :>> ', req.files.media);
   console.log('req.files :>> ', req.files);
 
   try {
-    // Verificamos si hay archivos en la solicitud
     if (!req.files.media || Object.keys(req.files.media).length === 0) {
       return res.status(400).json({ message: 'No se han proporcionado archivos' });
     }
@@ -53,21 +51,17 @@ async function processFile(file) {
       const tempFilePath = path.join(__dirname, 'temp', 'convert', 'video.mp4');
       require('fs').writeFileSync(tempFilePath, file.data);
 
-      // Extrae el fotograma utilizando fluent-ffmpeg
       const frameOutputPath = path.join(__dirname, 'temp', 'convert', 'frame.png');
       await runFfmpegPromisified()
         .input(tempFilePath)
-        .frames(1)  // Extrae solo un fotograma
+        .frames(1)  
         .output(frameOutputPath)
         .run();
 
-      // Puedes borrar el archivo temporal si lo deseas
       require('fs').unlinkSync(tempFilePath);
 
-      // Lee el buffer del fotograma
       const frameBuffer = require('fs').readFileSync(frameOutputPath);
 
-      // Puedes borrar el archivo del fotograma si lo deseas
       require('fs').unlinkSync(frameOutputPath);
       console.log('frameBuffer :>> ', frameBuffer);
       return frameBuffer;
