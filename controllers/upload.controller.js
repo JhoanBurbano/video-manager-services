@@ -24,7 +24,6 @@ const handleUpload = async (req, res) => {
         try {
           const _file = await processFile(file)
           const url = await uploadFile({...file, data: _file })
-          console.log('file: ', _file)
           await new Media({name:  altData.at(index).altName, url, description: altData.at(index).description, size: file.size, type: file.mimetype.startsWith('image/') ? 'image' : 'video', filename: file.name}).save()
         } catch (error) {
           console.error(error)

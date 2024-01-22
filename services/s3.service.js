@@ -18,7 +18,6 @@ const {
   });
   
   async function uploadFile(file) {
-    console.log('file.body :>> ', file.data);
     const uploadParams = {
       Bucket: AWS_BUCKET,
       Key: `${QR_PATH}${file.name}`,
@@ -34,7 +33,6 @@ const {
   
   async function deleteFile(filename) {
     const path = `${QR_PATH}${filename}`;
-    console.log('path', path);
     const command = new DeleteObjectCommand({
       Bucket: AWS_BUCKET,
       Key: path,
