@@ -14,9 +14,6 @@ router.get('/media', async (req, res, next) => {
 
 router.post('/upload', handleUpload, (req, res) => {
   try {
-    // Aquí puedes realizar cualquier procesamiento adicional con los archivos subidos
-    // Por ejemplo, puedes guardar información sobre los videos en una base de datos
-
     return res.status(200).json({ message: 'Archivos subidos con éxito' });
   } catch (error) {
     console.error(error);

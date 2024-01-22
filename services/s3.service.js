@@ -6,14 +6,14 @@ const {
   } = require('@aws-sdk/client-s3');
   
 
-  const { AWS_BUCKET, AWS_BUCKET_REGION, AWS_PUBLIC_ACCESS_KEY, AWS_SECRET_KEY} = process.env
+  const { AWS_BUCKET, AWS_BUCKET_REGION, AWS_PUBLIC_ACCESS_KEY, AWS_SECRET_KEYS} = process.env
   const QR_PATH = 'projects/VIDEOMANAGER/media/'; // Reemplaza 'tu_qr_path' con tu ruta de QR
   
   const client = new S3Client({
     region: AWS_BUCKET_REGION,
     credentials: {
       accessKeyId: AWS_PUBLIC_ACCESS_KEY,
-      secretAccessKey: AWS_SECRET_KEY,
+      secretAccessKey: AWS_SECRET_KEYS,
     },
   });
   
