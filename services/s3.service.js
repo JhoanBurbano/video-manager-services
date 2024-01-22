@@ -21,7 +21,7 @@ const {
     console.log('file.body :>> ', file.data);
     const uploadParams = {
       Bucket: AWS_BUCKET,
-      Key: `${QR_PATH}${file.altName}`,
+      Key: `${QR_PATH}${file.name}`,
       Body: file.data,
       ContentEncoding: 'base64',
       ContentType: 'image/png',

@@ -1,10 +1,11 @@
-const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const sharp = require('sharp');
-const ffmpeg = require('fluent-ffmpeg');
-const fs = require('fs/promises'); // Utilizamos fs.promises para operaciones asíncronas
 const { uploadFile } = require('../services/s3.service');
 const Media = require('../models/video.model');
+const { promisify } = require('util');
+const ffmpeg = require('fluent-ffmpeg');
+
+const runFfmpegPromisified = promisify(ffmpeg);
 
 const handleUpload = async (req, res) => {
   // console.log('req.files :>> ', req.files.media);
@@ -16,20 +17,15 @@ const handleUpload = async (req, res) => {
       return res.status(400).json({ message: 'No se han proporcionado archivos' });
     }
 
-    // const processedFiles = await processFiles(req.files.media);
-
-    // Puedes realizar cualquier procesamiento adicional con los archivos subidos
-    // Por ejemplo, guardar información sobre los archivos en una base de datos
-
     const media = Array.isArray(req.files.media) ? req.files.media : [req.files.media]
-
-    // const _media = new Media({});
 
     await Promise.all(
       media?.map(async (file) => {
         try {
-          const url = await uploadFile(file)
-          await new Media({name: file.altName, url, description: file.description}).save()
+          const _file = await processFile(file)
+          const url = await uploadFile({...file, data: _file})
+          console.log('file: ', _file)
+          await new Media({name: file.name, url, description: file.description}).save()
         } catch (error) {
           console.error(error)
           return  res.status(500).json({ message: 'Error al procesar la subida de archivos' });
@@ -44,38 +40,42 @@ const handleUpload = async (req, res) => {
   }
 };
 
-async function processFiles(files) {
-  console.log('files :>> ', files);
-  const processedFiles = [];
+async function processFile(file) {
+  try {
+    if (file.mimetype.startsWith('image/')) {
+      const processedBuffer = await sharp(file.data)
+        .resize(800, 600, { fit: 'cover' })
+        .jpeg({ quality: 80, progressive: true })
+        .toBuffer();
+      return processedBuffer;
+    } else if (file.mimetype.startsWith('video/')) {
+      return file.data;
+      const tempFilePath = path.join(__dirname, 'temp', 'convert', 'video.mp4');
+      require('fs').writeFileSync(tempFilePath, file.data);
 
-  await Promise.all(
-    Object.values(files).map(async (file) => {
-      console.log('Longitud del búfer:', file.data.length);
-      const uniqueSuffix = uuidv4();
-      const filename = `${file.name}-${uniqueSuffix}${path.extname(file.name)}`;
-      const filePath = path.join(__dirname, 'uploads', filename);
+      // Extrae el fotograma utilizando fluent-ffmpeg
+      const frameOutputPath = path.join(__dirname, 'temp', 'convert', 'frame.png');
+      await runFfmpegPromisified()
+        .input(tempFilePath)
+        .frames(1)  // Extrae solo un fotograma
+        .output(frameOutputPath)
+        .run();
 
-      if (file.mimetype.startsWith('image/')) {
-        // Procesar y optimizar la imagen usando Sharp
-        const processedBuffer = await sharp(file.data).resize(800, 600).toBuffer();
-        await fs.writeFile(filePath, processedBuffer);
-        processedFiles.push({ filename, mimetype: file.mimetype });
-      } else if (file.mimetype.startsWith('video/')) {
-        // Comprimir y convertir videos usando fluent-ffmpeg-promises
-        const videoOutputPath = path.join(__dirname, 'uploads', `${uniqueSuffix}.mp4`);
-        await ffmpeg()
-          .input(file.data)
-          .videoCodec('libx264')
-          .audioCodec('aac')
-          .output(videoOutputPath)
-          .run();
-        processedFiles.push({ filename: `${uniqueSuffix}.mp4`, mimetype: 'video/mp4' });
-      }
-    })
-  );
+      // Puedes borrar el archivo temporal si lo deseas
+      require('fs').unlinkSync(tempFilePath);
 
-  return processedFiles;
+      // Lee el buffer del fotograma
+      const frameBuffer = require('fs').readFileSync(frameOutputPath);
+
+      // Puedes borrar el archivo del fotograma si lo deseas
+      require('fs').unlinkSync(frameOutputPath);
+      console.log('frameBuffer :>> ', frameBuffer);
+      return frameBuffer;
+    }
+  } catch (error) {
+    console.error('Error processing file:', error);
+    throw new Error('Error processing file');
+  }
 }
-
 
 module.exports = { handleUpload };
