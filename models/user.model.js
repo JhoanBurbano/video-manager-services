@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String },
   name: { type: String },
   lastname: { type: String },
-  email: { type: String },
+  email: { type: String, unique: true },
   password: { type: String }, 
   media: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Media' }]
 });
