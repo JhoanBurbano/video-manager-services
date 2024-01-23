@@ -1,6 +1,8 @@
 const express = require('express');
 const { handleUpload } = require('../controllers/upload.controller');
 const { getMedia, deleteMedia } = require('../services/media.services');
+const { addMedia } = require('../services/user.services');
+const { getId } = require('../services/token.service');
 
 const router = express.Router();
 
@@ -21,8 +23,11 @@ router.delete("/media/:id", async (req, res) => {
   }
 })
 
-router.post('/upload', handleUpload, (req, res) => {
+router.post('/upload', handleUpload, async (req, res) => {
+  console.log(req.body)
+
   try {
+    await addMedia(getId(req.headers), req.body.mediaIds)
     return res.status(200).json({ message: 'Archivos subidos con éxito' });
   } catch (error) {
     console.error(error);

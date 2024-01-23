@@ -7,10 +7,10 @@ const ffmpeg = require('fluent-ffmpeg');
 
 const runFfmpegPromisified = promisify(ffmpeg);
 
-const handleUpload = async (req, res) => {
+const handleUpload = async (req, res, next) => {
 
   const altData = JSON.parse(req.body.data)
-
+  const mediaIds = []
 
   try {
     if (!req.files.media || Object.keys(req.files.media).length === 0) {
@@ -24,14 +24,16 @@ const handleUpload = async (req, res) => {
         try {
           const _file = await processFile(file)
           const url = await uploadFile({...file, data: _file })
-          await new Media({name:  altData.at(index).altName, url, description: altData.at(index).description, size: file.size, type: file.mimetype.startsWith('image/') ? 'image' : 'video', filename: file.name}).save()
+          const newMedia = await new Media({name:  altData.at(index).altName, url, description: altData.at(index).description, size: file.size, type: file.mimetype.startsWith('image/') ? 'image' : 'video', filename: file.name}).save()
+          mediaIds.push(newMedia._id)
         } catch (error) {
           console.error(error)
           return  res.status(500).json({ message: 'Error al procesar la subida de archivos' });
         }
       })
     )
-
+    req.body.mediaIds = mediaIds
+      return next()
     res.status(200).json({ message: 'Archivos subidos con éxito', processedFiles: req.files.media.length, media });
   } catch (error) {
     console.error(error);

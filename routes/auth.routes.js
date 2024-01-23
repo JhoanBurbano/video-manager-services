@@ -1,5 +1,6 @@
 const express = require('express');
-const { isAuth, login, register } = require('../services/user.services');
+const { isAuth, login, register, getUserData } = require('../services/user.services');
+const { getId } = require('../services/token.service');
 
 const router = express.Router();
 
@@ -11,6 +12,16 @@ router.get('/isValid', async (req, res, next) => {
   } catch (error) {
     res.status(500).json({message: "Hubo un error al traer la data"})
   }
+})
+
+router.get("/data", async (req, res, next) => {
+    try {
+        const user = await getUserData(getId(req.headers))
+        if(!user) return res.status(404).json({message: "No se encontro la data"})
+        res.json(user)
+    } catch (error) {
+        res.status(404).json({message: "No se encontro la data"})
+    }
 })
 
 router.post("/login", async (req, res) => {
