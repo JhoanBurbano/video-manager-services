@@ -3,7 +3,10 @@ const { deleteFile } = require("./s3.service")
 
 const getMedia = async () => {
     try {
-        const media = Media.find()
+        const media = await Media.find().populate({
+            path: 'author',
+            select: 'avatar name lastname email'
+          });
         return media
     } catch (error) {
         console.error(error)

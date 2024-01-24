@@ -4,6 +4,7 @@ const { uploadFile } = require('../services/s3.service');
 const Media = require('../models/video.model');
 const { promisify } = require('util');
 const ffmpeg = require('fluent-ffmpeg');
+const { getId } = require('../services/token.service');
 
 const runFfmpegPromisified = promisify(ffmpeg);
 
@@ -24,7 +25,7 @@ const handleUpload = async (req, res, next) => {
         try {
           const _file = await processFile(file)
           const url = await uploadFile({...file, data: _file })
-          const newMedia = await new Media({name:  altData.at(index).altName, url, description: altData.at(index).description, size: file.size, type: file.mimetype.startsWith('image/') ? 'image' : 'video', filename: file.name}).save()
+          const newMedia = await new Media({name:  altData.at(index).altName, url, description: altData.at(index).description, size: file.size, type: file.mimetype.startsWith('image/') ? 'image' : 'video', filename: file.name, author: getId(req.headers)}).save()
           mediaIds.push(newMedia._id)
         } catch (error) {
           console.error(error)
