@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const morgan = require('morgan');
+const { TokenHandler } = require('./middleware/token.middleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,14 +17,17 @@ require('./services/db.services')
 
 app.use(fileUpload());
 
-app.use('/api/auth', authRoutes)
-app.use('/api', uploadRoutes);
 
-app.use((req, res) => {
+
+
+app.use('/api/auth', authRoutes)
+app.use('/api', TokenHandler, uploadRoutes);
+
+app.use((_, res) => {
   res.status(404).json({ message: 'Ruta no encontrada' });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, _, res, next) => {
   console.error(err);
   res.status(500).json({ message: 'Error interno del servidor' });
 });
