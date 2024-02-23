@@ -1,5 +1,4 @@
 const path = require('path');
-const sharp = require('sharp');
 const { uploadFile } = require('../services/s3.service');
 const Media = require('../models/video.model');
 const { promisify } = require('util');
@@ -45,11 +44,12 @@ const handleUpload = async (req, res, next) => {
 async function processFile(file) {
   try {
     if (file.mimetype.startsWith('image/')) {
-      const processedBuffer = await sharp(file.data)
-        .resize(800, 600, { fit: 'cover' })
-        .jpeg({ quality: 80, progressive: true })
-        .toBuffer();
-      return processedBuffer;
+      return file.data
+      // const processedBuffer = await sharp(file.data)
+      //   .resize(800, 600, { fit: 'cover' })
+      //   .jpeg({ quality: 80, progressive: true })
+      //   .toBuffer();
+      // return processedBuffer;
     } else if (file.mimetype.startsWith('video/')) {
       return file.data;
       const tempFilePath = path.join(__dirname, 'temp', 'convert', 'video.mp4');
